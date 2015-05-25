@@ -1,0 +1,55 @@
+<gpx xmlns="http://www.topografix.com/GPX/1/1" 
+  xmlns:groundspeak="http://www.groundspeak.com/cache/1/1"
+  xmlns:gsak="http://www.gsak.net/xmlv1/6"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd
+    http://www.gsak.net/xmlv1/6 http://www.gsak.net/xmlv1/6/gsak.xsd
+	http://www.groundspeak.com/cache/1/1 http://www.groundspeak.com/cache/1/1/cache.xsd"
+  creator="gox-jconverter"
+  version="1.1">
+    <wpt lat="${g.getLatitude()}" lon="${g.getLongitude()}">
+        <name>${g.getCode()}</name>
+        <desc>${g.getName()}</desc>
+        <link href="${g.getUri()}"/>
+        <sym>Geocache</sym>
+        <type>Geocache|${g.getType()}</type>
+        <extensions>
+        <groundspeak:cache id="${g.getCacheId()}" available="True" archived="False">
+            <groundspeak:name>${g.getName()}</groundspeak:name>              
+            <groundspeak:placed_by>${g.getOwner()}</groundspeak:placed_by>
+            <groundspeak:type>${g.getType()}</groundspeak:type>
+            <groundspeak:container>${g.getSize()}</groundspeak:container>
+            <groundspeak:difficulty>${g.getDifficulty()}</groundspeak:difficulty>
+            <groundspeak:terrain>${g.getTerrain()}</groundspeak:terrain>
+            <groundspeak:long_description html="True"><![CDATA[${g.getDescription()}]]></groundspeak:long_description>
+            <groundspeak:encoded_hints><![CDATA[${g.getHint()}]]></groundspeak:encoded_hints>
+            <groundspeak:logs>
+#foreach( $l in ${g.getInitialLogs()})
+				<groundspeak:log id="${l.getLogID()}" guid="${l.getLogGuid()}">
+				    <groundspeak:date>$date.format("yyyy-MM-dd'T'HH:mm:ss", $l.getCreated())</groundspeak:date>
+				    <groundspeak:type>${l.getLogType()}</groundspeak:type>
+				    <groundspeak:finder id="${l.getAccountID()}" guid="${l.getAccountGuid()}">${l.getUserName()}</groundspeak:finder>
+				    <groundspeak:text><![CDATA[${l.getLogText()}]]></groundspeak:text>
+				</groundspeak:log>
+#end
+			</groundspeak:logs>
+        </groundspeak:cache>
+        </extensions>
+    </wpt>
+#if (${g.getWaypoints().size()} > 0)   
+#foreach( $wp in ${g.getWaypoints()} )
+    <wpt lat="${wp.getLatitude()}" lon="${wp.getLongitude()}">
+    		<name>${wp.getWpLookup()}</name>
+			<cmt>${wp.getWpNote()}</cmt>
+			<desc>${wp.getWpName()}</desc>
+			<sym>${wp.getWpType()}</sym>
+			<type>Waypoint|${wp.getWpType()}</type>
+			<extensions>
+				<gsak:wptExtension>
+					<gsak:Parent>${g.getCode()}</gsak:Parent>
+				</gsak:wptExtension>
+			</extensions>
+    </wpt>
+#end
+#end
+</gpx>
