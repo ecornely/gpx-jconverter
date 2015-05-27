@@ -1,19 +1,29 @@
-# gpx-jconverter
-A java project that can grab Geocaching.com information and format them in a GPX file or store all in a sqlite3 database
+# GPX-JCONVERTER
+Gpx-jconverter is a java project that can grab information from geocaching.com, store them in a local database or export them in a gpx format
 
-## Done and TODOs
+It allows to generate gpx file even with a basic account but simplifies queries by storing all information in a local database
 
-Until now the GCDownloader is able to log-in and download the HTML of a cache page.
+---
 
-The GCCachePageParser is able to read a cache page HTML and convert it to a Java Object
+### Done
 
-The DefaultConfiguration singleton read/write a "config.json" file in the current (execution) folder that contains cookies (this use the remember-me opetion and prevent to login all the time)
+The **Downloader** is able to log-on based on the *Configuration* provided (call the ensure ensureLoggedIn method)
+The **Downloader** can download read cache page HTML and use the search page
 
-What should be done is:
+The **CachePageParser** is able to read a cache page HTML and convert it to a Java Object as I only have a basic account, the premium caches are considered a bit differently. Later this should be better tested with premium/basic accounts
 
-* Improve the exceptions
+The **Searcher** is able to perform a search from latitude and longitude for any cache in a certain amont of km. It parses each line and create Geocache objects with as much information as provided in the search result. On every cache parsed it notifies the registered CacheListeners (if any).
+
+The **HibernateCacheListener** save each newCache in a database.
+
+The **DefaultConfiguration** singleton will use a file named "config.json" in the current (execution) folder that contains the configuration properties like username, password, cookies, ...
+
+### TODO
+
+* Improve the exceptions to avoid bugs and give more information on what went wrong
 * Parse the trackable informations available in the geocache page
-* The parser will probably crash on a premium geocache without a premium account (premium state should be a boolean)
-* Add a parser able to perform a search and store GC codes
 * Create a GUI
+* Improve the GPX format for multi cache
+* Test with encoded logs
+* Test with a premium/basic account
 * ...

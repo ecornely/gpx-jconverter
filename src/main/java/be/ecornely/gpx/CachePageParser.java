@@ -26,7 +26,7 @@ import be.ecornely.gpx.data.Waypoint;
 import be.ecornely.gpx.util.JsonDateDeserializer;
 import be.ecornely.gpx.util.Rot13;
 
-public class GCCachePageParser {
+public class CachePageParser {
 	private static Pattern patternCacheId = Pattern
 			.compile("\"CacheID\":(\\d+)");
 	private static Pattern patternDifficulty = Pattern
@@ -46,7 +46,7 @@ public class GCCachePageParser {
 	private Document document;
 	private Geocache geocache = new Geocache();
 
-	public GCCachePageParser(String pageContent) {
+	public CachePageParser(String pageContent) {
 		this.pageContent = pageContent;
 		this.document = Jsoup.parse(pageContent);
 		try{

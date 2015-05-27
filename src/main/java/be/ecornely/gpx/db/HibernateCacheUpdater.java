@@ -11,15 +11,15 @@ import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.slf4j.LoggerFactory;
 
-import be.ecornely.gpx.GCCachePageParser;
-import be.ecornely.gpx.GCDownloader;
+import be.ecornely.gpx.CachePageParser;
+import be.ecornely.gpx.Downloader;
 import be.ecornely.gpx.data.Geocache;
 
-public class HibernateGeocacheUpdater {
+public class HibernateCacheUpdater {
 	
 	private SessionFactory sessionFactory;
 	
-	private GCDownloader downloader;
+	private Downloader downloader;
 	
 	
 	@Transactional(value=TxType.REQUIRED)
@@ -30,7 +30,7 @@ public class HibernateGeocacheUpdater {
 		for(String code : codes){
 			try{
 				LoggerFactory.getLogger(this.getClass()).debug("Updating cache "+code);
-				Geocache geocache = new GCCachePageParser(downloader.getCachePage(code)).getGeocache();
+				Geocache geocache = new CachePageParser(downloader.getCachePage(code)).getGeocache();
 				this.updateGeocache(geocache);
 				LoggerFactory.getLogger(this.getClass()).debug("Updated cache "+code);
 			}catch(IOException | URISyntaxException e){
@@ -52,11 +52,11 @@ public class HibernateGeocacheUpdater {
 		this.sessionFactory = sessionFactory;
 	}
 
-	public GCDownloader getDownloader() {
+	public Downloader getDownloader() {
 		return downloader;
 	}
 
-	public void setDownloader(GCDownloader downloader) {
+	public void setDownloader(Downloader downloader) {
 		this.downloader = downloader;
 	}
 	

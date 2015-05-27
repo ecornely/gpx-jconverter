@@ -15,7 +15,7 @@ import org.hibernate.SessionFactory;
 
 import be.ecornely.gpx.data.Geocache;
 
-public class HibernateGeocacheSerializer {
+public class HibernateCacheSerializer {
 	
 	private SessionFactory sessionFactory;
 	

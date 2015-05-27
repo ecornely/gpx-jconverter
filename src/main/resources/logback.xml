@@ -18,7 +18,7 @@
 	<logger name="org.hibernate.SQL" level="warn" />
 	
 	
-	<logger name="be.ecornely.gpx.GCSearchParser" level="info" />
+	<logger name="be.ecornely.gpx.Searcher" level="info" />
 
 	<root level="trace">
 		<appender-ref ref="STDOUT" />

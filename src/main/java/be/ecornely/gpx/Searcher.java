@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import be.ecornely.gpx.data.Geocache;
 import be.ecornely.gpx.util.JsonDateDeserializer;
 
-public class GCSearchParser implements Serializable {
+public class Searcher implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Set<CacheListener> cacheListeners = new HashSet<>();
@@ -28,7 +28,7 @@ public class GCSearchParser implements Serializable {
 	private Integer maxIndex = null;
 	private Integer lastIndex = null;
 
-	private GCDownloader downloader;
+	private Downloader downloader;
 
 	private float latitude;
 
@@ -36,10 +36,10 @@ public class GCSearchParser implements Serializable {
 
 	private String distance;
 	
-	public GCSearchParser() {
+	public Searcher() {
 	}
 	
-	public GCSearchParser(GCDownloader downloader, float latitude, float longitude, String distance) {
+	public Searcher(Downloader downloader, float latitude, float longitude, String distance) {
 		this.downloader = downloader;
 		this.latitude = latitude;
 		this.longitude = longitude;
@@ -141,11 +141,11 @@ public class GCSearchParser implements Serializable {
 		this.cacheListeners.remove(listener);
 	}
 
-	public GCDownloader getDownloader() {
+	public Downloader getDownloader() {
 		return downloader;
 	}
 
-	public void setDownloader(GCDownloader downloader) {
+	public void setDownloader(Downloader downloader) {
 		this.downloader = downloader;
 	}
 

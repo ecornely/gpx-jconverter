@@ -38,7 +38,7 @@ import be.ecornely.gpx.configuration.DefaultConfiguration;
  * <p>This class can download HTML pages from www.geocaching.com</p>
  * <p>On creation, it is using the {@link DefaultConfiguration} class to fill the cookies information of its' HTTPClient</p>
  */
-public class GCDownloader {
+public class Downloader {
 
 	private CloseableHttpClient client;
 	private CookieStore cookieStore;
@@ -47,7 +47,7 @@ public class GCDownloader {
 	/**
 	 * Constructor initilializing a GCDownloader with the HTTPClient default Configuration
 	 * */
-	public GCDownloader(Configuration gcConfiguration) {
+	public Downloader(Configuration gcConfiguration) {
 		this.gcConfiguration = gcConfiguration;
 		cookieStore = getDefaultCookieStore();
 		client = HttpClients.custom().setDefaultCookieStore(cookieStore)
