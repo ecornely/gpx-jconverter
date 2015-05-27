@@ -13,13 +13,13 @@ import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -33,8 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import be.ecornely.gpx.configuration.Configuration;
 import be.ecornely.gpx.configuration.DefaultConfiguration;
-
-import org.apache.http.cookie.Cookie;
 
 /**
  * <p>This class can download HTML pages from www.geocaching.com</p>
@@ -83,7 +81,7 @@ public class GCDownloader {
 	 * <p>Read the HTML content of a geocahe page based on it's GC code</p>
 	 * <p>This will make a GET request to http://www.geocaching.com/geocache/{gcCode} and return the HTML content</p>
 	 * */
-	public String getCachePage(String gcCode) throws URISyntaxException, ClientProtocolException, IOException {
+	public String getCachePage(String gcCode) throws URISyntaxException, IOException {
 		String pageContent = null;
 		HttpGet get = new HttpGet("http://www.geocaching.com/geocache/" + gcCode);
 		pageContent = executeMethod(get);
@@ -91,7 +89,7 @@ public class GCDownloader {
 		return pageContent;
 	}
 
-	private String executeMethod(HttpUriRequest request) throws IOException, ClientProtocolException {
+	private String executeMethod(HttpUriRequest request) throws IOException {
 		String pageContent = null;
 		try (CloseableHttpResponse response = client.execute(request)) {
 			HttpEntity entity = response.getEntity();
@@ -119,7 +117,7 @@ public class GCDownloader {
 	 * Else a POST of the login form is done with the user credentials.
 	 * </p>
 	 */
-	public void ensureLoggedIn(String username, String password) throws IOException, ClientProtocolException {
+	public void ensureLoggedIn() throws IOException {
 		String pageContent = executeMethod(
 				new HttpGet("https://www.geocaching.com/login/default.aspx?RESETCOMPLETE=y&redir=/profile"));
 		Document document = Jsoup.parse(pageContent);
@@ -133,8 +131,8 @@ public class GCDownloader {
 			List<NameValuePair> parameters = Arrays.asList(new BasicNameValuePair("__EVENTTARGET", ""),
 					new BasicNameValuePair("__EVENTARGUMENT", ""), new BasicNameValuePair("__VIEWSTATE", viewstate),
 					new BasicNameValuePair("__VIEWSTATEGENERATOR", viewstateGenerator),
-					new BasicNameValuePair("ctl00$ContentBody$tbUsername", username),
-					new BasicNameValuePair("ctl00$ContentBody$tbPassword", password),
+					new BasicNameValuePair("ctl00$ContentBody$tbUsername", this.gcConfiguration.getUsername()),
+					new BasicNameValuePair("ctl00$ContentBody$tbPassword", this.gcConfiguration.getPassword()),
 					new BasicNameValuePair("ctl00$ContentBody$cbRememberMe", "on"),
 					new BasicNameValuePair("ctl00$ContentBody$btnSignIn", "Sign In"));
 			post.setEntity(new UrlEncodedFormEntity(parameters));
@@ -156,5 +154,18 @@ public class GCDownloader {
 		}else{
 			LoggerFactory.getLogger(this.getClass()).info("ensureLoggedIn() - The profile page is accessible skipped");
 		}
+	}
+	
+	String performSearch(float latitude, float longitude, int startIndex, String radius) throws IOException{
+		String pageContent = null;
+		HttpGet get = null;
+		if(startIndex==0){
+			get = new HttpGet("https://www.geocaching.com/play/search/@"+latitude+","+longitude+"?origin="+latitude+","+longitude+"&radius="+radius);
+		}else{
+			get = new HttpGet("https://www.geocaching.com/play/search/more-results?startIndex="+startIndex+"&inputOrigin="+latitude+","+longitude+"&sortOrigin="+latitude+"%2C"+longitude+"&fbu=false&filteredByOtherUsersFinds=false&originTreatment=0");
+		}
+		pageContent = executeMethod(get);
+		return pageContent;
+		
 	}
 }

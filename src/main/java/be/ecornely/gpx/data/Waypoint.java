@@ -3,61 +3,78 @@ package be.ecornely.gpx.data;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Waypoint {
-	String wpPrefix = null;
-	String wpLookup = null;
-	String wpName = null;
-	String wpCoords = null;
-	String wpNote = "";
-	String wpType = null;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
+@Entity
+public class Waypoint {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private int id;
+	
+	@Column
+	private String prefix = null;
+	@Column
+	private String lookup = null;
+	@Column
+	private String name = null;
+	@Column
+	private String coords = null;
+	@Column
+	private String note = "";
+	@Column
+	private String type = null;
+	
 	private static final Pattern coordsPattern = Pattern
 			.compile("\\s*([NS])\\s*(\\d+)\\s*.?\\s*(\\d+(?:\\.\\d+)?)\\s*([EW])\\s*(\\d+)\\s*.?\\s*(\\d+(?:\\.\\d+)?)\\s*");
 
-	public String getWpPrefix() {
-		return wpPrefix;
+	public String getPrefix() {
+		return prefix;
 	}
 
-	public void setWpPrefix(String wpPrefix) {
-		this.wpPrefix = wpPrefix;
+	public void setPrefix(String wpPrefix) {
+		this.prefix = wpPrefix;
 	}
 
-	public String getWpLookup() {
-		return wpLookup;
+	public String getLookup() {
+		return lookup;
 	}
 
-	public void setWpLookup(String wpLookup) {
-		this.wpLookup = wpLookup;
+	public void setLookup(String wpLookup) {
+		this.lookup = wpLookup;
 	}
 
-	public String getWpName() {
-		return wpName;
+	public String getName() {
+		return name;
 	}
 
-	public void setWpName(String wpName) {
-		this.wpName = wpName;
+	public void setName(String wpName) {
+		this.name = wpName;
 	}
 
-	public String getWpCoords() {
-		return wpCoords.replaceAll("[\\s�]$", "");
+	public String getCoords() {
+		return coords.replaceAll("[\\s�]$", "");
 	}
 
-	public void setWpCoords(String wpCoords) {
-		this.wpCoords = wpCoords;
+	public void setCoords(String wpCoords) {
+		this.coords = wpCoords;
 	}
 
-	public String getWpNote() {
-		return wpNote;
+	public String getNote() {
+		return note;
 	}
 
-	public void setWpNote(String wpNote) {
-		this.wpNote = wpNote;
+	public void setNote(String wpNote) {
+		this.note = wpNote;
 	}
 
 	public float getLatitude() {
 		float lat = 0f;
-		if (this.getWpCoords() != null) {
-			Matcher matcher = coordsPattern.matcher(this.getWpCoords());
+		if (this.getCoords() != null) {
+			Matcher matcher = coordsPattern.matcher(this.getCoords());
 			if (matcher.matches()) {
 				lat = Integer.parseInt(matcher.group(2)) + Float.parseFloat(matcher.group(3))/60f * ( (matcher.group(1)) == "S" ? -1 : 1 );
 			}
@@ -67,8 +84,8 @@ public class Waypoint {
 
 	public float getLongitude() {
 		float lon = 0f;
-		if (this.getWpCoords() != null) {
-			Matcher matcher = coordsPattern.matcher(this.getWpCoords());
+		if (this.getCoords() != null) {
+			Matcher matcher = coordsPattern.matcher(this.getCoords());
 			if (matcher.matches()) {
 				lon = Integer.parseInt(matcher.group(5)) + Float.parseFloat(matcher.group(6))/60f * ( (matcher.group(4)) == "W"? -1 : 1 );
 			}
@@ -76,19 +93,19 @@ public class Waypoint {
 		return lon;
 	}
 
-	public String getWpType() {
-		return wpType;
+	public String getType() {
+		return type;
 	}
 
-	public void setWpType(String wpType) {
-		this.wpType = wpType;
+	public void setType(String wpType) {
+		this.type = wpType;
 	}
 	
 	@Override
 	public String toString() {
-		return "Waypoint [wpPrefix=" + wpPrefix + ", wpLookup=" + wpLookup
-				+ ", wpName=" + wpName + ", wpCoords=" + wpCoords + ", wpNote="
-				+ wpNote + "]";
+		return "Waypoint [wpPrefix=" + prefix + ", wpLookup=" + lookup
+				+ ", wpName=" + name + ", wpCoords=" + coords + ", wpNote="
+				+ note + "]";
 	}
 
 }

@@ -30,6 +30,22 @@ public class DefaultConfiguration implements Configuration {
 		return INSTANCE.getCookies();
 	}
 
+	public String getUsername() {
+		return INSTANCE.getUsername();
+	}
+
+	public String getPassword() {
+		return INSTANCE.getPassword();
+	}
+
+	public void setUsername(String username) {
+		INSTANCE.setUsername(username);
+	}
+
+	public void setPassword(String password) {
+		INSTANCE.setPassword(password);
+	}
+
 	
 	
 }

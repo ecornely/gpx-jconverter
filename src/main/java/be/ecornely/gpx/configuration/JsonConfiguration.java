@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,12 +19,41 @@ public class JsonConfiguration implements Configuration {
 	private static boolean creation = false;
 	
 	private List<Cookie> cookies;
+	
+	private String username;
+	
+	private String password;
+	
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+		this.saveToFile();
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+		this.saveToFile();
+	}
+
+
 	private ObjectMapper objectMapper = new ObjectMapper();
 	
 	private File configFile;
 
 	public JsonConfiguration(File configFile) {
 		this.configFile = configFile;
+		try {
+			BeanUtils.copyProperties(this, this.readFromFile());
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass()).warn("Unable to copy properties loaded from file "+this.configFile.getAbsolutePath(), e);
+		}
 	}
 	
 	private JsonConfiguration() {

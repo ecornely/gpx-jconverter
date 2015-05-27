@@ -2,27 +2,75 @@ package be.ecornely.gpx.data;
 
 import java.io.Serializable;
 import java.net.URI;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@Entity
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Geocache implements Serializable {
 	
 	private static final long serialVersionUID = 2038448846615747984L;
+	@Column
 	private String name;
+	@Id
 	private String code;
+	@Column
 	private String cacheId;
+	@Column
 	private String description;
+	@Column
 	private String owner;
+	@Column
 	private String latlonDM;
-	private float[] latlon;
-	private URI uri;
+	@Column
+	private float latitude;
+	@Column
+	private float longitude;
+	@Column
+	private String uri;
+	@Column
 	private String size;
+	@Column
 	private String type;
+	@Column
 	private float difficulty;
+	@Column
 	private float terrain;
+	@Column
 	private String hint;
+	@Column
+	private Integer favoritePoint;
+	@Column
+	private boolean premium = false;
+	
+	
+	@OneToMany(targetEntity=Log.class, cascade=CascadeType.ALL, orphanRemoval=true)
+	@JoinColumn(name="gccode")
 	private List<Log> initialLogs;
+	
+	@OneToMany(targetEntity=Waypoint.class, cascade=CascadeType.ALL, orphanRemoval=true)
+	@JoinColumn(name="gccode")
 	private List<Waypoint> waypoints;
+	
+	@Column
+	@Temporal(TemporalType.DATE)
+	private Date lastVisited;
+	@Column
+	@Temporal(TemporalType.DATE)
+	private Date placeDate;
 	
 	//TODO add trackables
 	
@@ -69,11 +117,11 @@ public class Geocache implements Serializable {
 		this.owner = owner;
 	}
 
-	public URI getUri() {
+	public String getUri() {
 		return uri;
 	}
 
-	public void setUri(URI uri) {
+	public void setUri(String uri) {
 		this.uri = uri;
 	}
 
@@ -125,14 +173,6 @@ public class Geocache implements Serializable {
 		this.latlonDM = latlonDM;
 	}
 
-	public float[] getLatlon() {
-		return latlon;
-	}
-
-	public void setLatlon(float[] latlon) {
-		this.latlon = latlon;
-	}
-
 	public String getHint() {
 		return hint;
 	}
@@ -149,22 +189,64 @@ public class Geocache implements Serializable {
 		this.waypoints = waypoints;
 	}
 	
-	public float getLatitude(){
-		return this.getLatlon()[0];
+	public Integer getFavoritePoint() {
+		return favoritePoint;
+	}
+
+	public void setFavoritePoint(Integer favoritePoint) {
+		this.favoritePoint = favoritePoint;
 	}
 	
-	public float getLongitude(){
-		return this.getLatlon()[1];
+	public Date getLastVisited() {
+		return lastVisited;
+	}
+
+	public void setLastVisited(Date lastVisited) {
+		this.lastVisited = lastVisited;
+	}
+
+	public Date getPlaceDate() {
+		return placeDate;
+	}
+
+	public void setPlaceDate(Date placeDate) {
+		this.placeDate = placeDate;
+	}
+
+	public float getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(float latitude) {
+		this.latitude = latitude;
+	}
+
+	public float getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(float longitude) {
+		this.longitude = longitude;
+	}
+	
+	public boolean isPremium() {
+		return premium;
+	}
+
+	public void setPremium(boolean premium) {
+		this.premium = premium;
 	}
 
 	@Override
 	public String toString() {
-		return "Geocache [name=" + name + ", code=" + code + ", cacheId="
-				+ cacheId + ", owner=" + owner + ", latlonDM=" + latlonDM
-				+ ", latlon=" + Arrays.toString(latlon) + ", uri=" + uri
-				+ ", size=" + size + ", type=" + type + ", difficulty="
-				+ difficulty + ", terrain=" + terrain + ", hint=" + hint + "]";
+		return "Geocache [name=" + name + ", code=" + code + ", cacheId=" + cacheId + ", description=" + description
+				+ ", owner=" + owner + ", latlonDM=" + latlonDM + ", latitude=" + latitude + ", longitude=" + longitude
+				+ ", uri=" + uri + ", size=" + size + ", type=" + type + ", difficulty=" + difficulty + ", terrain="
+				+ terrain + ", hint=" + hint + ", favoritePoint=" + favoritePoint + ", lastVisited=" + lastVisited
+				+ ", placeDate=" + placeDate + "]";
 	}
+	
+	
 
 	
 }

@@ -51,4 +51,9 @@ public interface Configuration extends Serializable{
 	 * Get the list of cookies
 	 * */
 	List<Cookie> getCookies();
+	
+	String getUsername();
+	String getPassword();
+	void setUsername(String username);
+	void setPassword(String password);
 }

@@ -4,206 +4,120 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import be.ecornely.gpx.util.JsonDateDeserializer;
 
-/*
-{
-    "LogID":494782979,
-    "CacheID":2997069,
-    "LogGuid":"a0ad1c25-a597-4581-a33e-b0aa178da383",
-    "Latitude":null,
-    "Longitude":null,
-    "LatLonString":"",
-    "LogType":"Found it",
-    "LogTypeImage":"2.png",
-    "LogText":"Profitant d'une reconnaissance pour l'Event de Solwaster le 01 mai 2015, J'ai loggue quelques caches.<br />Merci pour celle-ci",
-    "Created":"22/04/2015",
-    "Visited":"22/04/2015",
-    "UserName":"Papilou-Nanou",
-    "MembershipLevel":3,
-    "AccountID":4654537,
-    "AccountGuid":"88dd27f3-75d1-429b-a07c-4356e3b33d3f",
-    "Email":"",
-    "AvatarImage":"47e0c27f-1bd5-4a66-8295-3bc66eebd03a.jpg",
-    "GeocacheFindCount":400,
-    "GeocacheHideCount":7,
-    "ChallengesCompleted":0,
-    "IsEncoded":false,
-    "creator":{
-        "GroupTitle":"Premium Member",
-        "GroupImageUrl":"/images/icons/prem_user.gif"
-    },
-    "Images":[
-		{
-		    "ImageID":23932255,
-		    "ImageGuid":"02ea08ce-94b8-49ff-b574-055761630deb",
-		    "Name":"la Saw et Soulwaster ",
-		    "Descr":"",
-		    "FileName":"02ea08ce-94b8-49ff-b574-055761630deb.jpg",
-		    "Created":"17/08/2014",
-		    "LogID":435960399,
-		    "CacheID":2997069,
-		    "ImageUrl":null
-		}
-    ]
-}
- * */
+@Entity
 public class Log implements Serializable{
 	
 	private static final long serialVersionUID = 6092453959603836327L;
 	
-
-	/*
-	   {
-		    "ImageID":23932255,
-		    "ImageGuid":"02ea08ce-94b8-49ff-b574-055761630deb",
-		    "Name":"la Saw et Soulwaster ",
-		    "Descr":"",
-		    "FileName":"02ea08ce-94b8-49ff-b574-055761630deb.jpg",
-		    "Created":"17/08/2014",
-		    "LogID":435960399,
-		    "CacheID":2997069,
-		    "ImageUrl":null
-		}
-	 */
-	public static class Image implements Serializable{
-		private static final long serialVersionUID = -8274740344410107482L;
-		@JsonProperty("ImageID")
-		private Long imageID;
-		@JsonProperty("ImageGuid")
-	    private String imageGuid;
-		@JsonProperty("Name")
-	    private String name;
-		@JsonProperty("Descr")
-	    private String descr;
-		@JsonProperty("FileName")
-	    private String fileName;
-		@JsonProperty("Created")
-		@JsonDeserialize(using=JsonDateDeserializer.class)
-	    private Date created;
-		@JsonProperty("LogID")
-	    private Long logID;
-		@JsonProperty("CacheID")
-	    private Long cacheID;
-		@JsonProperty("ImageUrl")
-	    private String imageUrl;
-	    public Image() {
-	    	
-		}
-		public Long getImageID() {
-			return imageID;
-		}
-		public void setImageID(Long imageID) {
-			this.imageID = imageID;
-		}
-		public String getImageGuid() {
-			return imageGuid;
-		}
-		public void setImageGuid(String imageGuid) {
-			this.imageGuid = imageGuid;
-		}
-		public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
-		}
-		public String getDescr() {
-			return descr;
-		}
-		public void setDescr(String descr) {
-			this.descr = descr;
-		}
-		public String getFileName() {
-			return fileName;
-		}
-		public void setFileName(String fileName) {
-			this.fileName = fileName;
-		}
-		public Date getCreated() {
-			return created;
-		}
-		public void setCreated(Date created) {
-			this.created = created;
-		}
-		public Long getLogID() {
-			return logID;
-		}
-		public void setLogID(Long logID) {
-			this.logID = logID;
-		}
-		public Long getCacheID() {
-			return cacheID;
-		}
-		public void setCacheID(Long cacheID) {
-			this.cacheID = cacheID;
-		}
-		public String getImageUrl() {
-			return imageUrl;
-		}
-		public void setImageUrl(String imageUrl) {
-			this.imageUrl = imageUrl;
-		}
-		@Override
-		public String toString() {
-			return "Image [imageID=" + imageID + ", name=" + name + ", descr="
-					+ descr + ", fileName=" + fileName + "]";
-		}
-	    
-		
-	    
-	}
-	
+	@Id
 	@JsonProperty("LogID")
 	private Long logID;
+	
+	@Column
 	@JsonProperty("CacheID")
     private Long cacheID;
+	
+	@Column
 	@JsonProperty("LogGuid")
     private String logGuid;
+	
+	@Column
 	@JsonProperty("Latitude")
     private Float latitude;
+	
+	@Column
 	@JsonProperty("Longitude")
     private Float longitude;
+	
+	@Column
 	@JsonProperty("LatLonString")
     private String latLonString;
+	
+	@Column
 	@JsonProperty("LogType")
     private String logType;
+	
+	@Column
 	@JsonProperty("LogTypeImage")
     private String logTypeImage;
+	
+	@Column
 	@JsonProperty("LogText")
     private String logText;
+
+	@Temporal(TemporalType.DATE)
+	@Column
 	@JsonProperty("Created")
 	@JsonDeserialize(using=JsonDateDeserializer.class)
     private Date created;
+	
+	@Temporal(TemporalType.DATE)
+	@Column
 	@JsonProperty("Visited")
 	@JsonDeserialize(using=JsonDateDeserializer.class)
     private Date visited;
+	
+	@Column
 	@JsonProperty("UserName")
     private String userName;
+	
+	@Column
 	@JsonProperty("MembershipLevel")
     private Integer membershipLevel;
+	
+	@Column
 	@JsonProperty("AccountID")
     private Long accountID;
+	
+	@Column
 	@JsonProperty("AccountGuid")
     private String accountGuid;
+	
+	@Column
 	@JsonProperty("Email")
     private String email;
+	
+	@Column
 	@JsonProperty("AvatarImage")
     private String avatarImage;
+	
+	@Column
 	@JsonProperty("GeocacheFindCount")
     private Integer geocacheFindCount;
+	
+	@Column
 	@JsonProperty("GeocacheHideCount")
     private Integer geocacheHideCount;
+	
+	@Column
 	@JsonProperty("ChallengesCompleted")
     private Integer challengesCompleted;
+	
+	@Column
 	@JsonProperty("IsEncoded")
     private boolean isEncoded = false;
+	
+	@OneToMany(targetEntity=LogImage.class, cascade=CascadeType.ALL, orphanRemoval=true)
+	@JoinColumn(name="logid")
     @JsonProperty("Images")
-    private List<Image> images;
+    private List<LogImage> images;
+	
+	@Column
     @JsonIgnore
     @JsonProperty("Creator")
     private String creator;
@@ -379,11 +293,11 @@ public class Log implements Serializable{
 		this.isEncoded = isEncoded;
 	}
 
-	public List<Image> getImages() {
+	public List<LogImage> getImages() {
 		return images;
 	}
 
-	public void setImages(List<Image> images) {
+	public void setImages(List<LogImage> images) {
 		this.images = images;
 	}
 

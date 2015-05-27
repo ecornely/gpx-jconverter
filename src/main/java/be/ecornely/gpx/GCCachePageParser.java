@@ -1,17 +1,20 @@
 package be.ecornely.gpx;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import be.ecornely.gpx.data.Geocache;
 import be.ecornely.gpx.data.Log;
 import be.ecornely.gpx.data.Waypoint;
+import be.ecornely.gpx.util.JsonDateDeserializer;
 import be.ecornely.gpx.util.Rot13;
 
 public class GCCachePageParser {
@@ -40,42 +44,120 @@ public class GCCachePageParser {
 	
 	private String pageContent;
 	private Document document;
-	private Geocache geocache;
+	private Geocache geocache = new Geocache();
 
 	public GCCachePageParser(String pageContent) {
 		this.pageContent = pageContent;
 		this.document = Jsoup.parse(pageContent);
-		this.geocache = this.parse();
+		try{
+			this.parse();
+		}catch(Throwable t){
+			if(LoggerFactory.getLogger(this.getClass()).isDebugEnabled()){
+				String code = this.geocache.getCode();
+				if(code==null || code.length()==0){
+					code="unknown";
+				}
+				LoggerFactory.getLogger(this.getClass()).debug("A problem occured while parsing HTML from "+code);
+				String filename = "tests-output/"+code+".html";
+				LoggerFactory.getLogger(this.getClass()).debug("The content pageContent will be saved under "+filename);
+				try {
+					IOUtils.write(pageContent, new FileOutputStream(filename));
+				} catch (IOException e) {
+				}
+				
+			}
+			throw t;
+		}
 	}
 
 	public Geocache getGeocache() {
 		return this.geocache;
 	}
 
-	private Geocache parse() {
-		Geocache geocache = new Geocache();
-		geocache.setName(readName());
-		geocache.setCode(readeCode());
-		geocache.setCacheId(readCacheId());
-		geocache.setDescription(readDescription());
-		geocache.setDifficulty(readDifficulty());
-		geocache.setTerrain(readTerrain());
-		geocache.setLatlon(readLatLon());
-		geocache.setLatlonDM(readLatLonDM());
-		geocache.setOwner(readOwner());
-		geocache.setSize(readSize());
-		geocache.setType(readType());
-		geocache.setUri(readUri());
-		geocache.setHint(Rot13.applyTo(readHints()));
-		geocache.setInitialLogs(readInitialLogs());
-		geocache.setWaypoints(readWaypoints());
+	private void parse() {
 		
-		return geocache;
+		if(document.select("head title").text().contains("Premium Member Only Cache")){
+			geocache.setPremium(true);
+			geocache.setCode(readPremiumCode());
+			geocache.setName(readName());
+			geocache.setDifficulty(readPremiumDifficulty());
+			geocache.setTerrain(readPremiumTerrain());
+			geocache.setOwner(readPremiumOwner());
+			geocache.setSize(readPremiumSize());
+			
+		}else{
+			geocache.setCode(readCode());
+			geocache.setName(readName());
+			geocache.setDifficulty(readDifficulty());
+			geocache.setTerrain(readTerrain());
+			geocache.setOwner(readOwner());
+			
+			geocache.setSize(readSize());
+			geocache.setType(readType());
+			geocache.setCacheId(readCacheId());
+			geocache.setDescription(readDescription());
+			float[] latlon = readLatLon();
+			geocache.setLatitude(latlon[0]);
+			geocache.setLongitude(latlon[1]);
+			geocache.setLatlonDM(readLatLonDM());
+			geocache.setUri(readUri());
+			geocache.setHint(Rot13.applyTo(readHints()));
+			geocache.setInitialLogs(readInitialLogs());
+			geocache.setWaypoints(readWaypoints());
+			geocache.setFavoritePoint(readFavoritePoint());
+			geocache.setPlaceDate(readPlaceDate());
+			geocache.setLastVisited(readLastVisited());
+		}		
 
 	}
 
+	private String readPremiumSize() {
+		return document.select("p.PMCacheInfoSpacing img").get(0).attr("alt").replaceAll("Size: ", "");
+	}
+
+	private String readPremiumOwner() {
+		return document.select("span#ctl00_ContentBody_uxCacheType").text().replaceAll("A cache by ", "");
+	}
+
+	private float readPremiumTerrain() {
+		String src = document.select("p.PMCacheInfoSpacing img").get(2).attr("src");
+		Matcher matcher = Pattern.compile(".*/images/stars/stars(\\d.*)\\.gif").matcher(src);
+		if(matcher.matches()){
+			return Float.parseFloat(matcher.group(1).replaceAll("_", "."));
+		}
+		return -1;
+	}
+
+	private float readPremiumDifficulty() {
+		String src = document.select("p.PMCacheInfoSpacing img").get(1).attr("src");
+		Matcher matcher = Pattern.compile(".*/images/stars/stars(\\d.*)\\.gif").matcher(src);
+		if(matcher.matches()){
+			return Float.parseFloat(matcher.group(1).replaceAll("_", "."));
+		}
+		return -1;
+	}
+
+	private String readPremiumCode() {
+		Matcher matcher = Pattern.compile(".*\\((GC.*)\\)").matcher(document.select("div#ctl00_divContentMain h2").text());
+		if(matcher.matches()){
+			return matcher.group(1);
+		}
+		return null;
+	}
+
+	private Date readLastVisited() {
+		return JsonDateDeserializer.parseDate(document.select("span.LogDate").eq(0).text().replaceAll("\\s*Hidden\\s*:\\s*", "").replaceAll("\\s*$", ""));
+	}
+
+	private Date readPlaceDate() {
+		return JsonDateDeserializer.parseDate(document.select("#ctl00_ContentBody_mcd2").text().replaceAll("\\s*Hidden\\s*:\\s*", "").replaceAll("\\s*$", ""));
+	}
+
+	private Integer readFavoritePoint() {
+		return Integer.parseInt(document.select("span.favorite-value").text());
+	}
+
 	private List<Waypoint> readWaypoints() {
-		Document document = Jsoup.parse(pageContent);
 		Elements table = document.select("table#ctl00_ContentBody_Waypoints");
 		Elements lines = table.select("tr");
 		List<Waypoint> wpList = new ArrayList<>();
@@ -88,14 +170,14 @@ public class GCCachePageParser {
 				if(normalCells.size()==8){
 					wp = new Waypoint();
 					wpList.add(wp);
-					wp.setWpType(normalCells.get(2).select("img").attr("title"));
-					wp.setWpPrefix(normalCells.get(3).text());
-					wp.setWpLookup(normalCells.get(4).text());
-					wp.setWpName(normalCells.get(5).text());
-					wp.setWpCoords(normalCells.get(6).text());
+					wp.setType(normalCells.get(2).select("img").attr("title"));
+					wp.setPrefix(normalCells.get(3).text());
+					wp.setLookup(normalCells.get(4).text());
+					wp.setName(normalCells.get(5).text());
+					wp.setCoords(normalCells.get(6).text());
 				}
 				if(normalCells.size()==3){
-					if(wp!=null) wp.setWpNote(normalCells.get(2).text());
+					if(wp!=null) wp.setNote(normalCells.get(2).text());
 				}
 			}
 		}
@@ -143,11 +225,10 @@ public class GCCachePageParser {
 		}
 	}
 
-	private URI readUri() {
+	private String readUri() {
 		Elements select = document.select("form");
 		if (!select.isEmpty())
-			return URI.create("http://www.geocaching.com"
-					+ select.attr("action"));
+			return "http://www.geocaching.com"+ select.attr("action");
 		else
 			return null;
 	}
@@ -198,8 +279,7 @@ public class GCCachePageParser {
 
 		Matcher matcher = patternLatLon.matcher(pageContent);
 		if (matcher.find()) {
-			return new float[] { Float.parseFloat(matcher.group(1)),
-					Float.parseFloat(matcher.group(2)) };
+			return new float[] { Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)) };
 		} else {
 			return null;
 		}
@@ -242,7 +322,7 @@ public class GCCachePageParser {
 		}
 	}
 
-	private String readeCode() {
+	private String readCode() {
 		Elements select = document.select("span.CoordInfoCode");
 		if (!select.isEmpty())
 			return select.text();

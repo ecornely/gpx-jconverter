@@ -7,8 +7,18 @@
 	</appender>
 
 	<logger name="org.apache.http.wire" level="warn" />
-	<logger name="org.apache.velocity" level="warn" />
 	<logger name="org.apache.http.conn.ssl" level="warn" />
+	<logger name="org.apache.http" level="warn" />
+	<logger name="org.apache.commons.beanutils" level="warn" />
+	<logger name="org.apache.velocity" level="warn" />
+	<logger name="org.springframework.orm" level="warn" />
+	<logger name="org.springframework.transaction" level="warn" />
+	<logger name="org.springframework" level="warn" />
+	<logger name="org.hibernate" level="warn" />
+	<logger name="org.hibernate.SQL" level="warn" />
+	
+	
+	<logger name="be.ecornely.gpx.GCSearchParser" level="info" />
 
 	<root level="trace">
 		<appender-ref ref="STDOUT" />
