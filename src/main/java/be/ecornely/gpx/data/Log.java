@@ -14,12 +14,14 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import be.ecornely.gpx.util.JsonDateDeserializer;
+import be.ecornely.gpx.util.DateDeserializer;
 
 @Entity
+@JsonIgnoreProperties(value="creator")
 public class Log implements Serializable{
 	
 	private static final long serialVersionUID = 6092453959603836327L;
@@ -63,13 +65,13 @@ public class Log implements Serializable{
 	@Temporal(TemporalType.DATE)
 	@Column
 	@JsonProperty("Created")
-	@JsonDeserialize(using=JsonDateDeserializer.class)
+	@JsonDeserialize(using=DateDeserializer.class)
     private Date created;
 	
 	@Temporal(TemporalType.DATE)
 	@Column
 	@JsonProperty("Visited")
-	@JsonDeserialize(using=JsonDateDeserializer.class)
+	@JsonDeserialize(using=DateDeserializer.class)
     private Date visited;
 	
 	@Column
@@ -301,17 +303,25 @@ public class Log implements Serializable{
 		this.images = images;
 	}
 
+	public String getCreator() {
+		return creator;
+	}
+
+	public void setCreator(String creator) {
+		this.creator = creator;
+	}
+
 	@Override
 	public String toString() {
-		return "Log [logID=" + logID + ", cacheID=" + cacheID + ", logText="
-				+ logText + ", created=" + created + ", visited=" + visited
-				+ ", userName=" + userName + ", geocacheFindCount="
-				+ geocacheFindCount + ", geocacheHideCount="
-				+ geocacheHideCount + ", isEncoded=" + isEncoded + ", images="
-				+ images + "]";
+		return "Log [logID=" + logID + ", cacheID=" + cacheID + ", logGuid=" + logGuid + ", latitude=" + latitude
+				+ ", longitude=" + longitude + ", latLonString=" + latLonString + ", logType=" + logType
+				+ ", logTypeImage=" + logTypeImage + ", logText=" + logText + ", created=" + created + ", visited="
+				+ visited + ", userName=" + userName + ", membershipLevel=" + membershipLevel + ", accountID="
+				+ accountID + ", accountGuid=" + accountGuid + ", email=" + email + ", avatarImage=" + avatarImage
+				+ ", geocacheFindCount=" + geocacheFindCount + ", geocacheHideCount=" + geocacheHideCount
+				+ ", challengesCompleted=" + challengesCompleted + ", isEncoded=" + isEncoded + ", images=" + images
+				+ ", creator=" + creator + "]";
 	}
-	
-	
     
     
 	

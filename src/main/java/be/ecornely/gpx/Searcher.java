@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import be.ecornely.gpx.data.Geocache;
-import be.ecornely.gpx.util.JsonDateDeserializer;
+import be.ecornely.gpx.util.DateDeserializer;
 
 public class Searcher implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -71,6 +71,7 @@ public class Searcher implements Serializable {
 			maxIndex = Integer.parseInt(document.select("div.search-results-header > h2 > span:last-child").text().replaceAll("[,\\.]", ""))-1;
 			this.readTableRows(document.select("table#searchResultsTable > tbody#geocaches > tr[data-rownumber]"));
 		}else{
+			LoggerFactory.getLogger(this.getClass()).info("Parsed "+this.lastIndex+" out of "+this.maxIndex+" search results");
 			String rows = new ObjectMapper().readTree(pageContent).get("HtmlString").asText();
 			Document document = Jsoup.parseBodyFragment("<table>"+rows+"</table>");
 			this.readTableRows(document.select("tr[data-rownumber]"));
@@ -92,8 +93,8 @@ public class Searcher implements Serializable {
 					g.setDifficulty(Float.parseFloat(this.getDataColumn(element, "Difficulty").text()));
 					g.setTerrain(Float.parseFloat(this.getDataColumn(element, "Terrain").text()));
 					g.setFavoritePoint(Integer.parseInt(this.getDataColumn(element, "FavoritePoint").text()));
-					g.setLastVisited(JsonDateDeserializer.parseDate(this.getDataColumn(element, "DateLastVisited").text().replaceAll("^\\s*", "").replaceAll("\\s*$", "")));
-					g.setPlaceDate(JsonDateDeserializer.parseDate(this.getDataColumn(element, "PlaceDate").text().replaceAll("^\\s*", "").replaceAll("\\s*$", "")));
+					g.setLastVisited(DateDeserializer.parseDate(this.getDataColumn(element, "DateLastVisited").text().replaceAll("^\\s*", "").replaceAll("\\s*$", "")));
+					g.setPlaceDate(DateDeserializer.parseDate(this.getDataColumn(element, "PlaceDate").text().replaceAll("^\\s*", "").replaceAll("\\s*$", "")));
 				}
 				g.setCode(element.select("span.cache-details").text().replaceAll(".*\\| ", "").replaceAll("\\s*$", ""));
 				g.setName(element.select("span.cache-name").text());

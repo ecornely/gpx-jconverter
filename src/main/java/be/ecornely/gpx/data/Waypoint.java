@@ -1,5 +1,6 @@
 package be.ecornely.gpx.data;
 
+import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,7 +11,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class Waypoint {
+public class Waypoint implements Serializable {
+	private static final long serialVersionUID = -5771984156035828575L;
+
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int id;
@@ -31,46 +34,7 @@ public class Waypoint {
 	private static final Pattern coordsPattern = Pattern
 			.compile("\\s*([NS])\\s*(\\d+)\\s*.?\\s*(\\d+(?:\\.\\d+)?)\\s*([EW])\\s*(\\d+)\\s*.?\\s*(\\d+(?:\\.\\d+)?)\\s*");
 
-	public String getPrefix() {
-		return prefix;
-	}
-
-	public void setPrefix(String wpPrefix) {
-		this.prefix = wpPrefix;
-	}
-
-	public String getLookup() {
-		return lookup;
-	}
-
-	public void setLookup(String wpLookup) {
-		this.lookup = wpLookup;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String wpName) {
-		this.name = wpName;
-	}
-
-	public String getCoords() {
-		return coords.replaceAll("[\\s�]$", "");
-	}
-
-	public void setCoords(String wpCoords) {
-		this.coords = wpCoords;
-	}
-
-	public String getNote() {
-		return note;
-	}
-
-	public void setNote(String wpNote) {
-		this.note = wpNote;
-	}
-
+	
 	public float getLatitude() {
 		float lat = 0f;
 		if (this.getCoords() != null) {
@@ -93,19 +57,67 @@ public class Waypoint {
 		return lon;
 	}
 
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
+	public String getLookup() {
+		return lookup;
+	}
+
+	public void setLookup(String lookup) {
+		this.lookup = lookup;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getCoords() {
+		return coords;
+	}
+
+	public void setCoords(String coords) {
+		this.coords = coords;
+	}
+
+	public String getNote() {
+		return note;
+	}
+
+	public void setNote(String note) {
+		this.note = note;
+	}
+
 	public String getType() {
 		return type;
 	}
 
-	public void setType(String wpType) {
-		this.type = wpType;
-	}
-	
-	@Override
-	public String toString() {
-		return "Waypoint [wpPrefix=" + prefix + ", wpLookup=" + lookup
-				+ ", wpName=" + name + ", wpCoords=" + coords + ", wpNote="
-				+ note + "]";
+	public void setType(String type) {
+		this.type = type;
 	}
 
+	public static Pattern getCoordspattern() {
+		return coordsPattern;
+	}
+	
+	
+
+	
 }

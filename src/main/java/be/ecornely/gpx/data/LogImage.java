@@ -12,7 +12,7 @@ import javax.persistence.TemporalType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import be.ecornely.gpx.util.JsonDateDeserializer;
+import be.ecornely.gpx.util.DateDeserializer;
 
 @Entity
 public class LogImage implements Serializable{
@@ -42,7 +42,7 @@ public class LogImage implements Serializable{
 	@Temporal(TemporalType.DATE)
 	@Column
 	@JsonProperty("Created")
-	@JsonDeserialize(using=JsonDateDeserializer.class)
+	@JsonDeserialize(using=DateDeserializer.class)
 	private Date created;
 	
 	@Column
@@ -58,65 +58,79 @@ public class LogImage implements Serializable{
 	private String imageUrl;
     
 	public LogImage() {
-    	
 	}
+
 	public Long getImageID() {
 		return imageID;
 	}
+
 	public void setImageID(Long imageID) {
 		this.imageID = imageID;
 	}
+
 	public String getImageGuid() {
 		return imageGuid;
 	}
+
 	public void setImageGuid(String imageGuid) {
 		this.imageGuid = imageGuid;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
+
 	public String getDescr() {
 		return descr;
 	}
+
 	public void setDescr(String descr) {
 		this.descr = descr;
 	}
+
 	public String getFileName() {
 		return fileName;
 	}
+
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
+
 	public Date getCreated() {
 		return created;
 	}
+
 	public void setCreated(Date created) {
 		this.created = created;
 	}
+
 	public Long getLogID() {
 		return logID;
 	}
+
 	public void setLogID(Long logID) {
 		this.logID = logID;
 	}
+
 	public Long getCacheID() {
 		return cacheID;
 	}
+
 	public void setCacheID(Long cacheID) {
 		this.cacheID = cacheID;
 	}
+
 	public String getImageUrl() {
 		return imageUrl;
 	}
+
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
 	}
-	@Override
-	public String toString() {
-		return "Image [imageID=" + imageID + ", name=" + name + ", descr="
-				+ descr + ", fileName=" + fileName + "]";
-	}
+	
+	
 }

@@ -11,7 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public class JsonDateDeserializer extends JsonDeserializer<Date> {
+public class DateDeserializer extends JsonDeserializer<Date> {
 
 	static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 	
@@ -30,6 +30,10 @@ public class JsonDateDeserializer extends JsonDeserializer<Date> {
 		} catch (ParseException e) {
 			return null;
 		}
+	}
+	
+	public static String format(Date date){
+		return sdf.format(date);
 	}
 
 }

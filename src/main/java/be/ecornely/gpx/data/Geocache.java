@@ -1,7 +1,7 @@
 package be.ecornely.gpx.data;
 
 import java.io.Serializable;
-import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -16,6 +16,8 @@ import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import be.ecornely.gpx.util.DateDeserializer;
 
 @Entity
 @XmlRootElement
@@ -46,6 +48,8 @@ public class Geocache implements Serializable {
 	@Column
 	private String type;
 	@Column
+	private int foundCount;
+	@Column
 	private float difficulty;
 	@Column
 	private float terrain;
@@ -55,24 +59,21 @@ public class Geocache implements Serializable {
 	private Integer favoritePoint;
 	@Column
 	private boolean premium = false;
-	
-	
 	@OneToMany(targetEntity=Log.class, cascade=CascadeType.ALL, orphanRemoval=true)
 	@JoinColumn(name="gccode")
 	private List<Log> initialLogs;
-	
 	@OneToMany(targetEntity=Waypoint.class, cascade=CascadeType.ALL, orphanRemoval=true)
 	@JoinColumn(name="gccode")
 	private List<Waypoint> waypoints;
-	
 	@Column
 	@Temporal(TemporalType.DATE)
 	private Date lastVisited;
 	@Column
 	@Temporal(TemporalType.DATE)
 	private Date placeDate;
-	
-	//TODO add trackables
+	@OneToMany(targetEntity=Trackable.class, cascade=CascadeType.ALL, orphanRemoval=true)
+	@JoinColumn(name="inCache")
+	private List<Trackable> trackables;
 	
 	public Geocache() {
 	}
@@ -117,6 +118,30 @@ public class Geocache implements Serializable {
 		this.owner = owner;
 	}
 
+	public String getLatlonDM() {
+		return latlonDM;
+	}
+
+	public void setLatlonDM(String latlonDM) {
+		this.latlonDM = latlonDM;
+	}
+
+	public float getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(float latitude) {
+		this.latitude = latitude;
+	}
+
+	public float getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(float longitude) {
+		this.longitude = longitude;
+	}
+
 	public String getUri() {
 		return uri;
 	}
@@ -157,22 +182,6 @@ public class Geocache implements Serializable {
 		this.terrain = terrain;
 	}
 
-	public List<Log> getInitialLogs() {
-		return initialLogs;
-	}
-
-	public void setInitialLogs(List<Log> initialLogs) {
-		this.initialLogs = initialLogs;
-	}
-	
-	public String getLatlonDM() {
-		return latlonDM;
-	}
-
-	public void setLatlonDM(String latlonDM) {
-		this.latlonDM = latlonDM;
-	}
-
 	public String getHint() {
 		return hint;
 	}
@@ -180,15 +189,7 @@ public class Geocache implements Serializable {
 	public void setHint(String hint) {
 		this.hint = hint;
 	}
-	
-	public List<Waypoint> getWaypoints() {
-		return waypoints;
-	}
 
-	public void setWaypoints(List<Waypoint> waypoints) {
-		this.waypoints = waypoints;
-	}
-	
 	public Integer getFavoritePoint() {
 		return favoritePoint;
 	}
@@ -196,7 +197,31 @@ public class Geocache implements Serializable {
 	public void setFavoritePoint(Integer favoritePoint) {
 		this.favoritePoint = favoritePoint;
 	}
-	
+
+	public boolean isPremium() {
+		return premium;
+	}
+
+	public void setPremium(boolean premium) {
+		this.premium = premium;
+	}
+
+	public List<Log> getInitialLogs() {
+		return initialLogs;
+	}
+
+	public void setInitialLogs(List<Log> initialLogs) {
+		this.initialLogs = initialLogs;
+	}
+
+	public List<Waypoint> getWaypoints() {
+		return waypoints;
+	}
+
+	public void setWaypoints(List<Waypoint> waypoints) {
+		this.waypoints = waypoints;
+	}
+
 	public Date getLastVisited() {
 		return lastVisited;
 	}
@@ -213,40 +238,36 @@ public class Geocache implements Serializable {
 		this.placeDate = placeDate;
 	}
 
-	public float getLatitude() {
-		return latitude;
+	public List<Trackable> getTrackables() {
+		return trackables;
 	}
 
-	public void setLatitude(float latitude) {
-		this.latitude = latitude;
-	}
-
-	public float getLongitude() {
-		return longitude;
-	}
-
-	public void setLongitude(float longitude) {
-		this.longitude = longitude;
+	public void setTrackables(List<Trackable> trackables) {
+		this.trackables = trackables;
 	}
 	
-	public boolean isPremium() {
-		return premium;
+	public int getFoundCount() {
+		return foundCount;
 	}
 
-	public void setPremium(boolean premium) {
-		this.premium = premium;
+	public void setFoundCount(int foundCount) {
+		this.foundCount = foundCount;
 	}
+	
 
 	@Override
 	public String toString() {
-		return "Geocache [name=" + name + ", code=" + code + ", cacheId=" + cacheId + ", description=" + description
+		String lastVisited = (this.lastVisited!=null) ? DateDeserializer.format(this.lastVisited) : "";
+		String placeDate = (this.placeDate!=null) ? DateDeserializer.format(this.placeDate) : "";
+		return "Geocache [name=" + name + ", code=" + code + ", description length=" + ((description!=null) ? description.length() : 0)
 				+ ", owner=" + owner + ", latlonDM=" + latlonDM + ", latitude=" + latitude + ", longitude=" + longitude
 				+ ", uri=" + uri + ", size=" + size + ", type=" + type + ", difficulty=" + difficulty + ", terrain="
-				+ terrain + ", hint=" + hint + ", favoritePoint=" + favoritePoint + ", lastVisited=" + lastVisited
-				+ ", placeDate=" + placeDate + "]";
+				+ terrain + ", favoritePoint=" + favoritePoint + ", premium=" + premium + ", found count="+foundCount
+				+ ", initialLogs count=" + ((initialLogs!=null) ? initialLogs.size() : 0) + ", waypoints=" + ( (waypoints!=null) ? waypoints.size() : 0) + ", lastVisited=" + lastVisited
+				+ ", placeDate=" + placeDate + ", trackables=" + ((trackables!=null) ? trackables.size() : 0) + "]";
 	}
-	
-	
 
+	
+	
 	
 }

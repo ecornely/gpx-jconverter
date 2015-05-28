@@ -13,6 +13,8 @@ import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import be.ecornely.gpx.data.Geocache;
 import be.ecornely.gpx.data.Log;
+import be.ecornely.gpx.data.Trackable;
 import be.ecornely.gpx.data.Waypoint;
-import be.ecornely.gpx.util.JsonDateDeserializer;
+import be.ecornely.gpx.util.DateDeserializer;
 import be.ecornely.gpx.util.Rot13;
 
 public class CachePageParser {
@@ -33,14 +36,12 @@ public class CachePageParser {
 			.compile("Difficulty:</dt>[\\s\\n]*<dd>[\\s\\n]*<span.*?<img src=\"http://www.geocaching.com/images/stars/.*\\.gif\" alt=\"(\\d+(:?\\.\\d+)?)\\s*out of 5\"");
 	private static Pattern patternTerrain = Pattern
 			.compile("Terrain:</dt>[\\s\\n]*<dd>[\\s\\n]*<span.*?<img src=\"http://www.geocaching.com/images/stars/.*\\.gif\" alt=\"(\\d+(:?\\.\\d+)?)\\s*out of 5\"");
-	private static Pattern patternLatLonDM = Pattern
-			.compile("<span id=\"uxLatLon\">([NS])\\s*(\\d+)�\\s*(\\d+.\\d+)\\s*([EW])\\s*(\\d+)�\\s*(\\d+.\\d+)</span>");
+	private static Pattern patternLatLonDM = Pattern.compile("([NS])\\s*(\\d+)\u00B0?\\s*(\\d+.\\d+)\\s*([EW])\\s*(\\d+)\u00B0?\\s*(\\d+.\\d+)");
 	private static Pattern patternLatLon = Pattern
 			.compile("var lat=(\\d+(?:\\.\\d+)?), lng=(\\d+(?:\\.\\d+)?)");
 	private static Pattern patternOwner = Pattern
 			.compile("<a href=\"/seek/nearest\\.aspx\\?u=(.*?)\">hidden</a>");
-	private static Pattern patternInitialLogs = Pattern
-			.compile("initalLogs\\s*=\\s*(\\{.*\\})");
+	private static Pattern patternInitialLogs = Pattern.compile("initalLogs.*\"data\": (\\[.*\\])");
 	
 	private String pageContent;
 	private Document document;
@@ -107,8 +108,45 @@ public class CachePageParser {
 			geocache.setFavoritePoint(readFavoritePoint());
 			geocache.setPlaceDate(readPlaceDate());
 			geocache.setLastVisited(readLastVisited());
+			geocache.setTrackables(readTrackables());
+			geocache.setFoundCount(readFoundCount());
 		}		
 
+	}
+
+	private int readFoundCount() {
+		Elements images = document.select("p.LogTotals img[title]");
+		if(images.size()>0){
+			images.removeIf((t) -> {return ! t.attr("title").equals("Found it");});
+			if(images.size()==1){
+				Node nextSibling = images.get(0).nextSibling();
+				if(nextSibling instanceof TextNode){
+					TextNode count = (TextNode) nextSibling;
+					String foundCount = count.text().replaceAll("[\u00A0 ,\\.]", "");
+					Integer.parseInt(foundCount);
+				}
+			}
+		}
+		return 0;
+	}
+
+	private List<Trackable> readTrackables() {
+		if(document.select("div#ctl00_ContentBody_uxTravelBugList_uxNoTrackableItems").size()>0){
+			return null;
+		}else{
+			ArrayList<Trackable> trackables = new ArrayList<>();
+			Elements widgets = document.select("div.CacheDetailNavigationWidget");
+			widgets.removeIf( (t) -> {return ! t.select("h3.WidgetHeader span").text().equals("Inventory");});
+			
+			Iterator<Element> iterator = widgets.select("div.WidgetBody ul li").iterator();
+			while (iterator.hasNext()) {
+				Element li = (Element) iterator.next();
+				String guid = li.select("a").attr("href").replaceAll(".*guid=", "");
+				String name = li.select("a span").text();
+				trackables.add(new Trackable(guid, name, this.geocache.getCode()));
+			}
+			return trackables;
+		}
 	}
 
 	private String readPremiumSize() {
@@ -146,15 +184,20 @@ public class CachePageParser {
 	}
 
 	private Date readLastVisited() {
-		return JsonDateDeserializer.parseDate(document.select("span.LogDate").eq(0).text().replaceAll("\\s*Hidden\\s*:\\s*", "").replaceAll("\\s*$", ""));
+		return DateDeserializer.parseDate(document.select("span.LogDate").eq(0).text().replaceAll("\\s*Hidden\\s*:\\s*", "").replaceAll("\\s*$", ""));
 	}
 
 	private Date readPlaceDate() {
-		return JsonDateDeserializer.parseDate(document.select("#ctl00_ContentBody_mcd2").text().replaceAll("\\s*Hidden\\s*:\\s*", "").replaceAll("\\s*$", ""));
+		return DateDeserializer.parseDate(document.select("#ctl00_ContentBody_mcd2").text().replaceAll("\\s*Hidden\\s*:\\s*", "").replaceAll("\\s*$", ""));
 	}
 
 	private Integer readFavoritePoint() {
-		return Integer.parseInt(document.select("span.favorite-value").text());
+		Elements favorite = document.select("span.favorite-value");
+		if(favorite.size()>0){
+			return Integer.parseInt(favorite.text());
+		}else{
+			return 0;
+		}
 	}
 
 	private List<Waypoint> readWaypoints() {
@@ -174,7 +217,7 @@ public class CachePageParser {
 					wp.setPrefix(normalCells.get(3).text());
 					wp.setLookup(normalCells.get(4).text());
 					wp.setName(normalCells.get(5).text());
-					wp.setCoords(normalCells.get(6).text());
+					wp.setCoords(normalCells.get(6).text().replaceAll("\u00A0", ""));
 				}
 				if(normalCells.size()==3){
 					if(wp!=null) wp.setNote(normalCells.get(2).text());
@@ -189,14 +232,21 @@ public class CachePageParser {
 		if (matcher.find()) {
 			List<Log> list = new ArrayList<>();
 			String initialJson = matcher.group(1);
+			//LoggerFactory.getLogger(this.getClass()).debug("Parsing initalLogs json :"+initialJson);
 			try {
 				ObjectMapper objectMapper = new ObjectMapper();
 				objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-				JsonNode data = objectMapper.readValue(initialJson, JsonNode.class).path("data");
+				JsonNode data = objectMapper.readTree(initialJson);
 				Iterator<JsonNode> iterator = data.iterator();
 				while(iterator.hasNext()){
-					Log l = objectMapper.convertValue(iterator.next(), Log.class);
-					list.add(l);
+					JsonNode logJson = iterator.next();
+					try{
+						//LoggerFactory.getLogger(this.getClass()).debug("Log object json:"+logJson);
+						Log l = objectMapper.convertValue(logJson, Log.class);
+						list.add(l);
+					}catch(IllegalArgumentException e){
+						LoggerFactory.getLogger(this.getClass()).warn("Unable to unserialize Log : "+logJson, e);
+					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -262,12 +312,13 @@ public class CachePageParser {
 	private String readLatLonDM() {
 		if (!document.select("div#ctl00_divNotSignedIn").isEmpty())
 			throw new RuntimeException("Not signed in"); //TODO Throw a notlogged exception or something more precise
-
-		Matcher matcher = patternLatLonDM.matcher(pageContent);
-		if (matcher.find()) {
-			return matcher.group(1) + " " + matcher.group(2) + "."
-					+ matcher.group(3) + " " + matcher.group(4) + " "
-					+ matcher.group(5) + "." + matcher.group(6);
+		
+		String text = document.select("span#uxLatLon").text().replaceAll("\u00A0", " ");
+		Matcher matcher = patternLatLonDM.matcher(text);
+		if (matcher.matches()) {
+			return matcher.group(1) + "" + matcher.group(2) + " "
+					+ matcher.group(3) + " " + matcher.group(4) + ""
+					+ matcher.group(5) + " " + matcher.group(6);
 		} else {
 			return null;
 		}

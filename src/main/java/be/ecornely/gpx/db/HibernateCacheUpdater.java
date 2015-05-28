@@ -27,16 +27,28 @@ public class HibernateCacheUpdater {
 		Query query = sessionFactory.getCurrentSession().createQuery("SELECT g.code FROM Geocache as g");
 		@SuppressWarnings("unchecked")
 		List<String> codes = (List<String>) query.list();
+		int i=0;
 		for(String code : codes){
-			try{
-				LoggerFactory.getLogger(this.getClass()).debug("Updating cache "+code);
-				Geocache geocache = new CachePageParser(downloader.getCachePage(code)).getGeocache();
-				this.updateGeocache(geocache);
-				LoggerFactory.getLogger(this.getClass()).debug("Updated cache "+code);
-			}catch(IOException | URISyntaxException e){
-				LoggerFactory.getLogger(this.getClass()).warn("Unable to update cache : "+code, e);
-			}
+			LoggerFactory.getLogger(this.getClass()).debug("Updating cache "+code +" ("+(i+1)+"/"+codes.size()+")");
+			this.update(code);
+			i++;
 		}
+	}
+	
+	private void update(String code){
+		try{
+			Geocache geocache = new CachePageParser(downloader.getCachePage(code)).getGeocache();
+			this.updateGeocache(geocache);
+			LoggerFactory.getLogger(this.getClass()).trace(geocache.toString());
+		}catch(IOException | URISyntaxException e){
+			LoggerFactory.getLogger(this.getClass()).warn("Unable to update cache : "+code, e);
+		}
+	}
+	
+	@Transactional(value=TxType.REQUIRED)
+	public void updateCache(String code){
+		LoggerFactory.getLogger(this.getClass()).debug("Updating single cache "+code);
+		this.update(code);
 	}
 	
 	@Transactional(value=TxType.REQUIRES_NEW)
