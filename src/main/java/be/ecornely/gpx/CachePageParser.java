@@ -85,6 +85,7 @@ public class CachePageParser {
 			geocache.setTerrain(readPremiumTerrain());
 			geocache.setOwner(readPremiumOwner());
 			geocache.setSize(readPremiumSize());
+			geocache.setUri(readPremiumUri());
 			
 		}else{
 			geocache.setCode(readCode());
@@ -103,15 +104,27 @@ public class CachePageParser {
 			geocache.setLatlonDM(readLatLonDM());
 			geocache.setUri(readUri());
 			geocache.setHint(Rot13.applyTo(readHints()));
-			geocache.setInitialLogs(readInitialLogs());
 			geocache.setWaypoints(readWaypoints());
 			geocache.setFavoritePoint(readFavoritePoint());
 			geocache.setPlaceDate(readPlaceDate());
-			geocache.setLastVisited(readLastVisited());
 			geocache.setTrackables(readTrackables());
 			geocache.setFoundCount(readFoundCount());
+			List<Log> initialLogs = readInitialLogs();
+			geocache.setInitialLogs(initialLogs);
+			geocache.setLastVisited(initialLogs.get(0).getVisited());
 		}		
 
+	}
+
+	private String readPremiumUri() {
+		Elements metas = document.select("head meta");
+		if(metas.size()>0){
+			metas.removeIf((t)->{return !t.attr("property").equals("og:url");});
+			if(metas.size()==1){
+				return metas.attr("content");
+			}
+		}
+		return null;
 	}
 
 	private int readFoundCount() {
@@ -123,7 +136,7 @@ public class CachePageParser {
 				if(nextSibling instanceof TextNode){
 					TextNode count = (TextNode) nextSibling;
 					String foundCount = count.text().replaceAll("[\u00A0 ,\\.]", "");
-					Integer.parseInt(foundCount);
+					return Integer.parseInt(foundCount);
 				}
 			}
 		}
@@ -138,14 +151,19 @@ public class CachePageParser {
 			Elements widgets = document.select("div.CacheDetailNavigationWidget");
 			widgets.removeIf( (t) -> {return ! t.select("h3.WidgetHeader span").text().equals("Inventory");});
 			
-			Iterator<Element> iterator = widgets.select("div.WidgetBody ul li").iterator();
-			while (iterator.hasNext()) {
-				Element li = (Element) iterator.next();
-				String guid = li.select("a").attr("href").replaceAll(".*guid=", "");
-				String name = li.select("a span").text();
-				trackables.add(new Trackable(guid, name, this.geocache.getCode()));
+			Elements items = widgets.select("div.WidgetBody ul li");
+			if(items.size()>0){
+				Iterator<Element> iterator = items.iterator();
+				while (iterator.hasNext()) {
+					Element li = (Element) iterator.next();
+					String guid = li.select("a").attr("href").replaceAll(".*guid=", "");
+					String name = li.select("a span").text();
+					trackables.add(new Trackable(guid, name, this.geocache.getCode()));
+				}
+				return trackables;
+			}else{
+				return null;
 			}
-			return trackables;
 		}
 	}
 
@@ -181,10 +199,6 @@ public class CachePageParser {
 			return matcher.group(1);
 		}
 		return null;
-	}
-
-	private Date readLastVisited() {
-		return DateDeserializer.parseDate(document.select("span.LogDate").eq(0).text().replaceAll("\\s*Hidden\\s*:\\s*", "").replaceAll("\\s*$", ""));
 	}
 
 	private Date readPlaceDate() {
@@ -243,6 +257,10 @@ public class CachePageParser {
 					try{
 						//LoggerFactory.getLogger(this.getClass()).debug("Log object json:"+logJson);
 						Log l = objectMapper.convertValue(logJson, Log.class);
+//						if(l.isEncoded()){
+//							l.setLogText(Rot13.applyTo(l.getLogText()));
+//							l.setEncoded(false);
+//						}
 						list.add(l);
 					}catch(IllegalArgumentException e){
 						LoggerFactory.getLogger(this.getClass()).warn("Unable to unserialize Log : "+logJson, e);
@@ -356,10 +374,10 @@ public class CachePageParser {
 	}
 
 	private String readDescription() {
-		Elements select = this.document
-				.select("span#ctl00_ContentBody_LongDescription");
-		if (!select.isEmpty())
-			return select.html();
+		Elements shortDesc = document.select("span#ctl00_ContentBody_ShortDescription");
+		Elements longDesc = this.document.select("span#ctl00_ContentBody_LongDescription");
+		if (!longDesc.isEmpty() || !shortDesc.isEmpty())
+			return "<div id=\"shortDesc\">"+shortDesc.html()+"</div><div id=\"longDesc\">"+longDesc.html()+"</div>";
 		else
 			return null;
 	}

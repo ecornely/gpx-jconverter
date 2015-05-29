@@ -33,6 +33,7 @@ public class DateDeserializer extends JsonDeserializer<Date> {
 	}
 	
 	public static String format(Date date){
+		if(date==null) return null;
 		return sdf.format(date);
 	}
 
