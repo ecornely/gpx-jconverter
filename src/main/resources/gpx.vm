@@ -28,7 +28,7 @@
 				<groundspeak:log id="${l.getLogID()}" guid="${l.getLogGuid()}">
 				    <groundspeak:date>$date.format("yyyy-MM-dd'T'HH:mm:ss", $l.getCreated())</groundspeak:date>
 				    <groundspeak:type>${l.getLogType()}</groundspeak:type>
-				    <groundspeak:finder id="${l.getAccountID()}" guid="${l.getAccountGuid()}">${l.getUserName()}</groundspeak:finder>
+				    <groundspeak:finder id="${l.getAccountID()}" guid="${l.getAccountGuid()}">${l.getUserName().replaceAll("&", "&amp;")}</groundspeak:finder>
 				    <groundspeak:text><![CDATA[${l.getLogText()}]]></groundspeak:text>
 				</groundspeak:log>
 #end

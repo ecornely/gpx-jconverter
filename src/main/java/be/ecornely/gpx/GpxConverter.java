@@ -20,6 +20,7 @@ public class GpxConverter {
 		context.put("date", new DateTool());
 		StringWriter sw = new StringWriter();
 		String tpl = IOUtils.toString(GpxConverter.class.getResourceAsStream("/gpx.vm"), Charset.forName("UTF-8"));
+		//TODO HTML escape & to &amp; in <groundspeak:finder>
 		engine.evaluate(context, sw, "gpx", tpl);
 		return sw.toString();
 	}
